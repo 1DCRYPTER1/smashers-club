@@ -1,37 +1,36 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Home, Briefcase, Calendar, Shield, Settings } from 'lucide-react';
+import { Home, Calendar, Shield, Settings, Search } from 'lucide-react';
 
 const defaultItems = [
-    { label: 'home', icon: Home },
-    { label: 'strategy', icon: Briefcase },
-    { label: 'period', icon: Calendar },
-    { label: 'security', icon: Shield },
-    { label: 'settings', icon: Settings },
+  { label: 'home', icon: Home },
+  { label: 'find players', icon: Search },
+  { label: 'bookings', icon: Calendar },
+  { label: 'news', icon: Shield },
+  { label: 'settings', icon: Settings },
 ];
 
 const defaultAccentColor = 'var(--component-active-color-default)';
 
 const InteractiveMenu = ({ items, accentColor, activeIndex: externalActiveIndex, onItemClick }) => {
-
   const finalItems = useMemo(() => {
-     const isValid = items && Array.isArray(items) && items.length >= 2 && items.length <= 5;
-     if (!isValid) {
-        console.warn(
-          "InteractiveMenu: 'items' prop is invalid or missing. Using default items.",
-          items
-        );
-        return defaultItems;
-     }
-     return items;
+    const isValid = items && Array.isArray(items) && items.length >= 2 && items.length <= 6;
+    if (!isValid) {
+      console.warn(
+        "InteractiveMenu: 'items' prop is invalid or missing. Using default items.",
+        items
+      );
+      return defaultItems;
+    }
+    return items;
   }, [items]);
 
   const [internalActiveIndex, setInternalActiveIndex] = useState(0);
   const activeIndex = externalActiveIndex !== undefined ? externalActiveIndex : internalActiveIndex;
 
   useEffect(() => {
-      if (activeIndex >= finalItems.length) {
-          if (externalActiveIndex === undefined) setInternalActiveIndex(0);
-      }
+    if (activeIndex >= finalItems.length) {
+      if (externalActiveIndex === undefined) setInternalActiveIndex(0);
+    }
   }, [finalItems, activeIndex, externalActiveIndex]);
 
   const textRefs = useRef([]);
@@ -66,11 +65,11 @@ const InteractiveMenu = ({ items, accentColor, activeIndex: externalActiveIndex,
   };
 
   const navStyle = useMemo(() => {
-      const activeColor = accentColor || defaultAccentColor;
-      return {
-        '--component-active-color': activeColor
-      };
-  }, [accentColor]); 
+    const activeColor = accentColor || defaultAccentColor;
+    return {
+      '--component-active-color': activeColor
+    };
+  }, [accentColor]);
 
   return (
     <nav className="menu" role="navigation" style={navStyle}>
@@ -105,4 +104,4 @@ const InteractiveMenu = ({ items, accentColor, activeIndex: externalActiveIndex,
   );
 };
 
-export {InteractiveMenu}
+export { InteractiveMenu }

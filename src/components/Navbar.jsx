@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Newspaper, GraduationCap, Phone, CalendarDays } from 'lucide-react';
+import { Home, Newspaper, GraduationCap, Phone, CalendarDays, Users } from 'lucide-react';
 import { InteractiveMenu } from "@/components/ui/modern-mobile-menu";
 
 const Navbar = () => {
@@ -10,6 +10,7 @@ const Navbar = () => {
 
     const menuItems = [
         { label: 'home', icon: Home, path: '/' },
+        { label: 'players', icon: Users, path: '/players' },
         { label: 'news', icon: Newspaper, path: '/news' },
         { label: 'book', icon: CalendarDays, path: '/book' },
         { label: 'learn', icon: GraduationCap, path: '/learn' },
@@ -37,8 +38,8 @@ const Navbar = () => {
 
                 <div className="flex items-center gap-10">
                     <ul className="flex gap-8 text-white font-semibold text-sm uppercase tracking-widest">
-                        <li className={`hover:text-blue-200 transition-colors cursor-pointer ${location.pathname === '/about' ? 'text-blue-300' : ''}`}>
-                            <Link to="/about">Find Players</Link>
+                        <li className={`hover:text-blue-200 transition-colors cursor-pointer ${location.pathname === '/players' ? 'text-blue-300' : ''}`}>
+                            <Link to="/players">Find Players</Link>
                         </li>
                         <li className={`hover:text-blue-200 transition-colors cursor-pointer ${location.pathname === '/news' ? 'text-blue-300' : ''}`}>
                             <Link to="/news">News</Link>

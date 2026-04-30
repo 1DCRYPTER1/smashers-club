@@ -17,7 +17,12 @@ const News = () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch(`https://newsapi.org/v2/everything?q=badminton&language=en&sortBy=publishedAt&pageSize=13&apiKey=${API_KEY}`);
+            // Use Vercel proxy in production to bypass NewsAPI browser restrictions, use direct URL locally
+            const fetchUrl = import.meta.env.DEV 
+                ? `https://newsapi.org/v2/everything?q=badminton&language=en&sortBy=publishedAt&pageSize=13&apiKey=${API_KEY}`
+                : '/api/news';
+            
+            const res = await fetch(fetchUrl);
             const data = await res.json();
             
             if (data.status === 'ok') {

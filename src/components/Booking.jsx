@@ -9,11 +9,18 @@ const Booking = () => {
     const [bookedSlots, setBookedSlots] = useState([]);
     const [errors, setErrors] = useState({});
 
+    const getLocalDateString = (d = new Date()) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     const [formData, setFormData] = useState({
         full_name: '',
         email: '',
         phone: '',
-        booking_date: new Date().toISOString().split('T')[0],
+        booking_date: getLocalDateString(),
         timeslot: ''
     });
 
@@ -28,7 +35,7 @@ const Booking = () => {
             const date = new Date();
             date.setDate(date.getDate() + i);
             days.push({
-                full: date.toISOString().split('T')[0],
+                full: getLocalDateString(date),
                 display: i === 0 ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
             });
         }

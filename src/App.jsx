@@ -6,6 +6,7 @@ import Admin from './components/Admin';
 import News from './components/News';
 import Learn from './components/Learn';
 import Contact from './components/Contact';
+import FindPlayers from './components/FindPlayers';
 import BadmintonCourtSVG from './assets/badminton_court_half.svg';
 
 const Home = () => {
@@ -73,6 +74,7 @@ function App() {
           <Route path="/news" element={<><Navbar /><News /></>} />
           <Route path="/learn" element={<><Navbar /><Learn /></>} />
           <Route path="/contact" element={<><Navbar /><Contact /></>} />
+          <Route path="/players" element={<><Navbar /><FindPlayers /></>} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </div>
