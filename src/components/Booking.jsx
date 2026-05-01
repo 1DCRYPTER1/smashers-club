@@ -32,7 +32,7 @@ const Booking = () => {
         email: '',
         phone: '',
         booking_date: getLocalDateString(),
-        timeslot: ''
+        timeslots: []
     });
 
     const timeSlots = [
@@ -68,7 +68,10 @@ const Booking = () => {
             console.error("Error fetching slots:", error);
         }
 
-        if (data) setBookedSlots(data.map(b => b.timeslot));
+        if (data) {
+            const allSlots = data.flatMap(b => b.timeslot ? b.timeslot.split(', ') : []);
+            setBookedSlots(allSlots);
+        }
     };
 
     const validateForm = () => {
@@ -96,12 +99,14 @@ const Booking = () => {
             return;
         }
 
+        const totalAmount = formData.timeslots.length * 400;
+
         const options = {
             key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-            amount: 40000, // ₹400 in paise
+            amount: totalAmount * 100, // in paise
             currency: 'INR',
             name: "Smasher's Club",
-            description: "Court Booking Reservation",
+            description: `Booking ${formData.timeslots.length} court slot(s)`,
             prefill: {
                 name: formData.full_name,
                 email: formData.email,
@@ -114,8 +119,10 @@ const Booking = () => {
                 const payment_id = response.razorpay_payment_id;
                 setPaymentId(payment_id);
 
+                const { timeslots, ...rest } = formData;
                 const bookingData = {
-                    ...formData,
+                    ...rest,
+                    timeslot: timeslots.join(', '),
                     status: 'payment_successful',
                     reference_id: payment_id
                 };
@@ -181,8 +188,14 @@ const Booking = () => {
                                             <button
                                                 key={slot}
                                                 disabled={isBooked}
-                                                onClick={() => setFormData({ ...formData, timeslot: slot })}
-                                                className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${isBooked ? 'opacity-30 cursor-not-allowed grayscale' : formData.timeslot === slot ? 'border-[#61995E] bg-[#61995E]/5 text-[#61995E]' : 'border-slate-100 hover:border-slate-200 text-slate-600'}`}
+                                                onClick={() => {
+                                                    const isSelected = formData.timeslots.includes(slot);
+                                                    const newSlots = isSelected 
+                                                        ? formData.timeslots.filter(s => s !== slot) 
+                                                        : [...formData.timeslots, slot];
+                                                    setFormData({ ...formData, timeslots: newSlots });
+                                                }}
+                                                className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${isBooked ? 'opacity-30 cursor-not-allowed grayscale' : formData.timeslots.includes(slot) ? 'border-[#61995E] bg-[#61995E]/5 text-[#61995E]' : 'border-slate-100 hover:border-slate-200 text-slate-600'}`}
                                             >
                                                 <Clock size={18} />
                                                 <span className="font-bold">{slot}</span>
@@ -192,11 +205,11 @@ const Booking = () => {
                                     })}
                                 </div>
                                 <button
-                                    disabled={!formData.timeslot}
+                                    disabled={formData.timeslots.length === 0}
                                     onClick={() => setStep(2)}
                                     className="w-full mt-8 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
-                                    Continue <ChevronRight size={20} />
+                                    {formData.timeslots.length > 0 ? `Continue (${formData.timeslots.length} selected)` : 'Continue'} <ChevronRight size={20} />
                                 </button>
                             </motion.div>
                         )}
@@ -225,10 +238,11 @@ const Booking = () => {
                                 </div>
                                 <div className="mt-8 p-6 bg-slate-900 rounded-3xl text-white">
                                     <p className="text-xs opacity-50 uppercase font-bold tracking-widest mb-2">Review Booking</p>
-                                    <p className="font-bold text-lg">{formData.booking_date} @ {formData.timeslot}</p>
+                                    <p className="font-bold text-lg mb-1">{formData.booking_date}</p>
+                                    <p className="font-medium text-slate-300 text-sm">{formData.timeslots.join(', ')}</p>
                                 </div>
                                 <button onClick={handleSubmit} disabled={loading} className="w-full mt-6 bg-[#61995E] text-white py-4 rounded-2xl font-black uppercase shadow-xl hover:scale-[1.02] transition-transform">
-                                    {loading ? "Processing..." : "Proceed to Payment (₹400)"}
+                                    {loading ? "Processing..." : `Proceed to Payment (₹${formData.timeslots.length * 400})`}
                                 </button>
 
                                 <button onClick={() => setStep(1)} className="w-full mt-2 text-slate-400 font-bold py-2 text-sm">Go Back</button>

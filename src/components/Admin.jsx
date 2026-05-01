@@ -129,6 +129,13 @@ const Admin = () => {
         return acc;
     }, {});
 
+    const totalRevenue = bookings.reduce((sum, curr) => {
+        if (curr.status === 'payment_successful' && curr.timeslot) {
+            return sum + (curr.timeslot.split(',').length * 400);
+        }
+        return sum;
+    }, 0);
+
     const pieData = [
         { name: 'Paid', value: statusCounts['payment_successful'] || 0, color: '#10b981' },
         { name: 'Pending/Old', value: statusCounts['pending'] || 0, color: '#f59e0b' },
@@ -172,7 +179,7 @@ const Admin = () => {
                         </div>
                         <div className="bg-green-50 p-6 rounded-3xl shadow-sm border border-green-100 flex flex-col justify-center">
                             <h3 className="text-green-600/60 text-xs font-black uppercase tracking-widest mb-1">Revenue</h3>
-                            <p className="text-4xl font-black text-green-600">₹{((statusCounts['payment_successful'] || 0) * 400).toLocaleString()}</p>
+                            <p className="text-4xl font-black text-green-600">₹{totalRevenue.toLocaleString()}</p>
                         </div>
                         <div className="col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 h-48 flex flex-col items-center justify-center">
                             <h3 className="text-slate-400 text-xs font-black uppercase tracking-widest mb-2 self-start w-full">Status Breakdown</h3>
@@ -297,8 +304,9 @@ const Admin = () => {
                                                 <div className="inline-flex items-center gap-2 bg-[#61995E]/10 text-[#61995E] px-3 py-1.5 rounded-lg font-black text-xs tracking-wide">
                                                     <CalIcon size={14} /> {booking.booking_date}
                                                 </div>
-                                                <div className="text-xs font-bold text-slate-500 mt-2 flex items-center gap-1">
-                                                    <Clock size={12} /> {booking.timeslot}
+                                                <div className="text-xs font-bold text-slate-500 mt-2 flex items-start gap-1 max-w-[200px]">
+                                                    <Clock size={12} className="mt-0.5 shrink-0" /> 
+                                                    <span className="flex-1 leading-relaxed">{booking.timeslot}</span>
                                                 </div>
                                             </td>
                                             <td className="p-4">
