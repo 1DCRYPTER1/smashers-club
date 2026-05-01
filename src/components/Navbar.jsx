@@ -64,7 +64,7 @@ const Navbar = () => {
 
             {/* MOBILE NAVBAR */}
             <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[500px] z-50 pointer-events-none">
-                <div className="pointer-events-auto bg-white/10 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white/20 px-2">
+                <div className="pointer-events-auto bg-slate-900/90 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl border border-white/10 px-2">
                     <InteractiveMenu
                         items={menuItems}
                         accentColor="#ffffff"
