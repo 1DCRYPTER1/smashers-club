@@ -172,7 +172,7 @@ const Admin = () => {
                         </div>
                         <div className="bg-green-50 p-6 rounded-3xl shadow-sm border border-green-100 flex flex-col justify-center">
                             <h3 className="text-green-600/60 text-xs font-black uppercase tracking-widest mb-1">Revenue</h3>
-                            <p className="text-4xl font-black text-green-600">₹{((statusCounts['payment_successful'] || 0) * 500).toLocaleString()}</p>
+                            <p className="text-4xl font-black text-green-600">₹{((statusCounts['payment_successful'] || 0) * 400).toLocaleString()}</p>
                         </div>
                         <div className="col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 h-48 flex flex-col items-center justify-center">
                             <h3 className="text-slate-400 text-xs font-black uppercase tracking-widest mb-2 self-start w-full">Status Breakdown</h3>
