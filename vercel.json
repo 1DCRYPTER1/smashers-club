@@ -1,0 +1,12 @@
+{
+    "rewrites": [
+        {
+            "source": "/api/news",
+            "destination": "https://newsapi.org/v2/everything?q=badminton&language=en&sortBy=publishedAt&pageSize=13&apiKey=10dc15c598444f2fb473376210d8d17a"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
+}
