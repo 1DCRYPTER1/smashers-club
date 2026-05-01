@@ -59,16 +59,7 @@ const Admin = () => {
     };
 
     const updateStatus = async (id, newStatus) => {
-        const { error } = await supabase
-            .from('bookings')
-            .update({ status: newStatus })
-            .eq('id', id);
-
-        if (!error) {
-            setBookings(bookings.map(b => b.id === id ? { ...b, status: newStatus } : b));
-        } else {
-            alert("Error updating status: " + error.message);
-        }
+        // Deprecated: Automated via Razorpay now.
     };
 
     if (loading && !session) return <div className="min-h-screen bg-[#61995E] flex items-center justify-center"><RefreshCw className="animate-spin text-white" size={48} /></div>;
@@ -139,9 +130,8 @@ const Admin = () => {
     }, {});
 
     const pieData = [
-        { name: 'Pending', value: statusCounts['pending'] || 0, color: '#f59e0b' },
-        { name: 'Approved', value: statusCounts['approved'] || 0, color: '#10b981' },
-        { name: 'Rejected', value: statusCounts['rejected'] || 0, color: '#ef4444' },
+        { name: 'Paid', value: statusCounts['payment_successful'] || 0, color: '#10b981' },
+        { name: 'Pending/Old', value: statusCounts['pending'] || 0, color: '#f59e0b' },
     ].filter(d => d.value > 0);
 
     const dateCounts = bookings.reduce((acc, curr) => {
@@ -180,9 +170,9 @@ const Admin = () => {
                             <h3 className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total Requests</h3>
                             <p className="text-4xl font-black text-slate-900">{bookings.length}</p>
                         </div>
-                        <div className="bg-amber-50 p-6 rounded-3xl shadow-sm border border-amber-100 flex flex-col justify-center">
-                            <h3 className="text-amber-600/60 text-xs font-black uppercase tracking-widest mb-1">Pending</h3>
-                            <p className="text-4xl font-black text-amber-600">{statusCounts['pending'] || 0}</p>
+                        <div className="bg-green-50 p-6 rounded-3xl shadow-sm border border-green-100 flex flex-col justify-center">
+                            <h3 className="text-green-600/60 text-xs font-black uppercase tracking-widest mb-1">Revenue</h3>
+                            <p className="text-4xl font-black text-green-600">₹{((statusCounts['payment_successful'] || 0) * 500).toLocaleString()}</p>
                         </div>
                         <div className="col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 h-48 flex flex-col items-center justify-center">
                             <h3 className="text-slate-400 text-xs font-black uppercase tracking-widest mb-2 self-start w-full">Status Breakdown</h3>
@@ -244,9 +234,11 @@ const Admin = () => {
                                             <div className="text-xs text-slate-400 flex items-center gap-1 mt-1"><CalIcon size={12} /> {new Date(booking.created_at).toLocaleDateString()}</div>
                                         </div>
                                         <div>
-                                            {status === 'pending' && <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">Pending</span>}
-                                            {status === 'approved' && <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">Approved</span>}
-                                            {status === 'rejected' && <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">Rejected</span>}
+                                            {status === 'payment_successful' ? (
+                                                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">Paid</span>
+                                            ) : (
+                                                <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">{status}</span>
+                                            )}
                                         </div>
                                     </div>
 
@@ -263,22 +255,10 @@ const Admin = () => {
                                         </div>
                                     </div>
 
-                                    {status === 'pending' && (
-                                        <div className="flex gap-2 mt-2">
-                                            <button
-                                                onClick={() => updateStatus(booking.id, 'approved')}
-                                                className="flex-1 py-2 rounded-xl bg-green-50 text-green-600 font-bold text-sm flex justify-center items-center gap-2 hover:bg-green-500 hover:text-white transition-colors"
-                                            >
-                                                <Check size={16} strokeWidth={3} /> Approve
-                                            </button>
-                                            <button
-                                                onClick={() => updateStatus(booking.id, 'rejected')}
-                                                className="flex-1 py-2 rounded-xl bg-red-50 text-red-600 font-bold text-sm flex justify-center items-center gap-2 hover:bg-red-500 hover:text-white transition-colors"
-                                            >
-                                                <X size={16} strokeWidth={3} /> Reject
-                                            </button>
-                                        </div>
-                                    )}
+                                    <div className="bg-slate-50 rounded-xl p-3 mt-2 flex items-center justify-between border border-slate-100">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ref ID</span>
+                                        <span className="font-mono text-xs font-bold text-slate-700">{booking.reference_id || 'N/A'}</span>
+                                    </div>
                                 </div>
                             );
                         })}
@@ -293,7 +273,7 @@ const Admin = () => {
                                     <th className="p-4">Contact</th>
                                     <th className="p-4">Requested Slot</th>
                                     <th className="p-4">Status</th>
-                                    <th className="p-4 pr-8 text-right">Actions</th>
+                                    <th className="p-4 pr-8 text-right">Payment Ref</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -322,33 +302,19 @@ const Admin = () => {
                                                 </div>
                                             </td>
                                             <td className="p-4">
-                                                {status === 'pending' && <span className="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider">Pending</span>}
-                                                {status === 'approved' && <span className="bg-green-100 text-green-700 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider">Approved</span>}
-                                                {status === 'rejected' && <span className="bg-red-100 text-red-700 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider">Rejected</span>}
+                                                {status === 'payment_successful' ? (
+                                                    <span className="bg-green-100 text-green-700 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-max">
+                                                        <Check size={12} strokeWidth={3} /> PAID
+                                                    </span>
+                                                ) : (
+                                                    <span className="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-max">
+                                                        {status}
+                                                    </span>
+                                                )}
                                             </td>
-                                            <td className="p-4 pr-8">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    {status === 'pending' && (
-                                                        <>
-                                                            <button
-                                                                onClick={() => updateStatus(booking.id, 'approved')}
-                                                                className="w-9 h-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-500 hover:text-white transition-all shadow-sm transform hover:scale-110"
-                                                                title="Approve"
-                                                            >
-                                                                <Check size={18} strokeWidth={3} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => updateStatus(booking.id, 'rejected')}
-                                                                className="w-9 h-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm transform hover:scale-110"
-                                                                title="Reject"
-                                                            >
-                                                                <X size={18} strokeWidth={3} />
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                    {status !== 'pending' && (
-                                                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest border border-slate-200 px-3 py-1 rounded-full">Processed</span>
-                                                    )}
+                                            <td className="p-4 pr-8 text-right">
+                                                <div className="inline-flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-lg">
+                                                    <span className="font-mono text-xs font-bold text-slate-700">{booking.reference_id || 'N/A'}</span>
                                                 </div>
                                             </td>
                                         </tr>

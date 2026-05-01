@@ -8,6 +8,17 @@ const Booking = () => {
     const [loading, setLoading] = useState(false);
     const [bookedSlots, setBookedSlots] = useState([]);
     const [errors, setErrors] = useState({});
+    const [paymentId, setPaymentId] = useState('');
+
+    const loadRazorpayScript = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    };
 
     const getLocalDateString = (d = new Date()) => {
         const year = d.getFullYear();
@@ -63,10 +74,10 @@ const Booking = () => {
     const validateForm = () => {
         const newErrors = {};
         if (!formData.full_name.trim()) newErrors.full_name = "Name is required";
-        
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.email)) newErrors.email = "Please enter a valid email address";
-        
+
         const phoneRegex = /^(?:(?:\+|0{0,2})91(\s*[\-]\s*)?|[0]?)?[6789]\d{9}$/;
         if (!phoneRegex.test(formData.phone)) newErrors.phone = "Please enter a valid Indian phone number";
 
@@ -77,18 +88,68 @@ const Booking = () => {
     const handleSubmit = async () => {
         if (!validateForm()) return;
         setLoading(true);
-        const { error } = await supabase.from('bookings').insert([formData]);
-        if (!error) setStep(3);
-        else alert("Error: " + error.message);
-        setLoading(false);
+
+        const res = await loadRazorpayScript();
+        if (!res) {
+            alert('Razorpay SDK failed to load. Are you offline?');
+            setLoading(false);
+            return;
+        }
+
+        const options = {
+            key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+            amount: 40000, // ₹400 in paise
+            currency: 'INR',
+            name: "Smasher's Club",
+            description: "Court Booking Reservation",
+            prefill: {
+                name: formData.full_name,
+                email: formData.email,
+                contact: formData.phone
+            },
+            theme: {
+                color: '#61995E'
+            },
+            handler: async function (response) {
+                const payment_id = response.razorpay_payment_id;
+                setPaymentId(payment_id);
+
+                const bookingData = {
+                    ...formData,
+                    status: 'payment_successful',
+                    reference_id: payment_id
+                };
+
+                const { error } = await supabase.from('bookings').insert([bookingData]);
+
+                if (!error) {
+                    setStep(3);
+                } else {
+                    alert("Error saving booking: " + error.message);
+                }
+                setLoading(false);
+            },
+            modal: {
+                ondismiss: function () {
+                    setLoading(false);
+                }
+            }
+        };
+
+        const paymentObject = new window.Razorpay(options);
+        paymentObject.on('payment.failed', function (response) {
+            alert("Payment Failed: " + response.error.description);
+            setLoading(false);
+        });
+        paymentObject.open();
     };
 
     return (
-        <div className="min-h-screen bg-[#61995E] pt-24 pb-32 md:pb-12 px-4 md:px-6 flex justify-center items-start md:items-center font-sans overflow-y-auto">
+        <div className="h-[100dvh] bg-[#61995E] pt-24 pb-32 md:pb-12 px-4 md:px-6 flex justify-center items-start font-sans overflow-y-auto">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden min-h-[600px] flex flex-col"
+                className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden min-h-[600px] flex flex-col md:my-auto"
             >
                 <div className="bg-slate-900 p-8 text-white">
                     <h2 className="text-3xl font-black italic tracking-tighter">RESERVE COURT</h2>
@@ -142,6 +203,12 @@ const Booking = () => {
 
                         {step === 2 && (
                             <motion.div key="step2" initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
+                                <div className="bg-amber-50 text-amber-800 p-4 rounded-2xl mb-6 flex items-start gap-3 border border-amber-200 shadow-sm">
+                                    <div className="mt-0.5">⚠️</div>
+                                    <p className="text-xs font-bold leading-relaxed">
+                                        Please ensure your email address is correct. Your booking confirmation and receipt will be sent here automatically after payment.
+                                    </p>
+                                </div>
                                 <div className="space-y-4">
                                     <div>
                                         <input type="text" placeholder="Full Name" className={`w-full p-4 bg-slate-50 rounded-2xl border-2 outline-none focus:ring-2 ring-[#61995E] font-bold ${errors.full_name ? 'border-red-500' : 'border-transparent'}`} onChange={(e) => { setFormData({ ...formData, full_name: e.target.value }); setErrors({ ...errors, full_name: '' }); }} />
@@ -161,8 +228,9 @@ const Booking = () => {
                                     <p className="font-bold text-lg">{formData.booking_date} @ {formData.timeslot}</p>
                                 </div>
                                 <button onClick={handleSubmit} disabled={loading} className="w-full mt-6 bg-[#61995E] text-white py-4 rounded-2xl font-black uppercase shadow-xl hover:scale-[1.02] transition-transform">
-                                    {loading ? "Processing..." : "Confirm Request"}
+                                    {loading ? "Processing..." : "Proceed to Payment (₹400)"}
                                 </button>
+
                                 <button onClick={() => setStep(1)} className="w-full mt-2 text-slate-400 font-bold py-2 text-sm">Go Back</button>
                             </motion.div>
                         )}
@@ -172,9 +240,15 @@ const Booking = () => {
                                 <div className="w-20 h-20 bg-green-100 text-[#61995E] rounded-full flex items-center justify-center mb-6">
                                     <CheckCircle2 size={48} />
                                 </div>
-                                <h3 className="text-2xl font-black text-slate-900 mb-2">REQUEST SENT!</h3>
-                                <p className="text-slate-500 font-medium px-10">We've received your request. Our team will review it and notify you via email shortly.</p>
-                                <button onClick={() => window.location.href = '/'} className="mt-10 text-[#61995E] font-black uppercase tracking-widest text-sm underline">Back to Home</button>
+                                <h3 className="text-2xl font-black text-slate-900 mb-2">BOOKING CONFIRMED!</h3>
+                                <p className="text-slate-500 font-medium px-4 mb-4">
+                                    Your payment was successful. Please check your email for the confirmation receipt.
+                                </p>
+                                <div className="bg-slate-50 px-6 py-3 rounded-xl border border-slate-100 inline-block mb-8">
+                                    <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">Payment Reference</p>
+                                    <p className="font-mono text-sm text-slate-800 font-bold">{paymentId}</p>
+                                </div>
+                                <button onClick={() => window.location.href = '/'} className="text-[#61995E] font-black uppercase tracking-widest text-sm underline">Back to Home</button>
                             </motion.div>
                         )}
                     </AnimatePresence>
