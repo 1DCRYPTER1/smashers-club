@@ -4,7 +4,7 @@
 
 Welcome to the official repository of **Smasher's Club**, the ultimate digital destination for badminton enthusiasts. Designed with a premium "Anti-Gravity" aesthetic, this platform provides a seamless experience for booking courts, finding partners, and mastering the game.
 
-![Smasher's Club Preview](https://github.com/1DCRYPTER1/smashers-club/blob/main/public/preview.png?raw=true) *(Note: Add a real preview image to public/preview.png for this to show)*
+![Smasher's Club Banner](public/banner.png)
 
 ## ✨ Key Features
 
