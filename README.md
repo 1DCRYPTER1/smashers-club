@@ -2,7 +2,7 @@
 
 > **SMASH EVERYTHING.**
 
-Welcome to the official repository of **Smasher's Club**, the ultimate digital destination for badminton enthusiasts. Designed with a premium "Anti-Gravity" aesthetic, this platform provides a seamless experience for booking courts, finding partners, and mastering the game.
+Welcome to the official repository of **Smasher's Club**, the ultimate digital destination for badminton enthusiasts. This platform provides a seamless experience for booking courts, finding partners, and mastering the game.
 
 ![Smasher's Club Webview](public/landing_page.png)
 ![Smasher's Club Mobileview](public/landing_mobile.png)
@@ -69,16 +69,10 @@ Welcome to the official repository of **Smasher's Club**, the ultimate digital d
 
 ## 🎨 Design Philosophy
 
-Smasher's Club utilizes a unique **"Anti-Gravity"** theme characterized by:
+Smasher's Club utilizes a unique theme characterized by:
 - High-contrast typography.
 - Vibrant, curated green color palettes (`#61995E`).
 - Fluid, physics-based animations via Framer Motion.
 - Clean, minimalist layouts that prioritize usability and visual impact.
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
----
 
 Built with ❤️ for the Badminton Community.
